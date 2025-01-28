@@ -1,0 +1,92 @@
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+*.swp
+
+# Build files and derived data
+build/
+DerivedData/
+
+# User-specific settings
+*.xcuserdatad/
+*.xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# Compatibility (Xcode 3-8)
+*.moved-aside
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods
+Pods/
+podfile.lock
+
+# Carthage
+Carthage/Build/
+Carthage/Checkouts/
+
+# Accio
+.accio/
+Dependencies/
+
+# App packaging
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.xcarchive
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+fastlane/report.json
+
+# Provisioning Profiles
+*.mobileprovision
+*.provisionprofile
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Code Injection tools
+iOSInjectionProject/
+
+# Xcode workspace data
+*.xcworkspace/contents.xcworkspacedata
+
+# Exclusions for project files
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+
+# Other OS-specific files
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.fseventsd
+.DocumentRevisions-V100
+.com.apple.timemachine.donotpresent
+
+# End of custom .gitignore for Xcode
