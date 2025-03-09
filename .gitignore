@@ -15,6 +15,7 @@ DerivedData/
 *.xcuserdata/
 *.xcscmblueprint
 *.xccheckout
+*.xcconfig
 
 # Compatibility (Xcode 3-8)
 *.moved-aside

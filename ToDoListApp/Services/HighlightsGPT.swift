@@ -8,8 +8,18 @@
 import Foundation
 
 struct HighlightsGPT {
-    private let apiKey = "API_KEY"
-    private let url = "URL"
+    private let apiKey: String? = {
+        if let apiKeyValue = Bundle.main.infoDictionary?["APIKey"] as? String {
+            print("Successfully loaded API key: \(apiKeyValue.prefix(20))...")
+            return apiKeyValue
+        } else {
+            print("Failed to load API key from Info.plist")
+            print("Available keys in Info.plist: \(Bundle.main.infoDictionary?.keys.joined(separator: ", ") ?? "none")")
+            return nil
+        }
+    }()
+
+    private let url = "https://api.openai.com/v1/chat/completions"
 
     func fetchHighlights(tasks: [SingleCardData]) async throws -> String? {
         guard let endpoint = URL(string: url) else {
@@ -18,7 +28,7 @@ struct HighlightsGPT {
 
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
-        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(apiKey ?? "")", forHTTPHeaderField: "Authorization")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let taskSummaries = tasks.map { task in
@@ -68,5 +78,26 @@ struct HighlightsGPT {
         // Decode the response
         let response = try JSONDecoder().decode(OpenAIResponse.self, from: data)
         return response.choices.first?.message.content
+    }
+}
+
+struct OpenAIResponse: Codable {
+    let choices: [Choice]
+    
+    struct Choice: Codable {
+        let message: Message
+        let index: Int
+        let finishReason: String?
+        
+        enum CodingKeys: String, CodingKey {
+            case message
+            case index
+            case finishReason = "finish_reason"
+        }
+    }
+    
+    struct Message: Codable {
+        let role: String
+        let content: String
     }
 }

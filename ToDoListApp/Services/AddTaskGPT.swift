@@ -8,15 +8,25 @@
 import Foundation
 
 struct AddTaskGPT {
-    private let apiKey = "API_KEY"
-    private let url = "URL"
+    private let apiKey: String? = {
+        if let apiKeyValue = Bundle.main.infoDictionary?["APIKey"] as? String {
+            print("Successfully loaded API key: \(apiKeyValue.prefix(20))...")
+            return apiKeyValue
+        } else {
+            print("Failed to load API key from Info.plist")
+            print("Available keys in Info.plist: \(Bundle.main.infoDictionary?.keys.joined(separator: ", ") ?? "none")")
+            return nil
+        }
+    }()
+    
+    private let url = "https://api.openai.com/v1/chat/completions"
     
     func fetchResponse(prompt: String, tags: [String], completion: @escaping ([String: Any]?) -> Void) {
         guard let endpoint = URL(string: url) else { return }
         
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
-        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.addValue("Bearer \(apiKey ?? "")", forHTTPHeaderField: "Authorization")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let currentDateString = DateFormatter.shared.string(from: Date())
@@ -74,15 +84,4 @@ struct AddTaskGPT {
             }
         }.resume()
     }
-}
-
-// Response model
-struct OpenAIResponse: Decodable {
-    struct Choice: Decodable {
-        struct Message: Decodable {
-            let content: String
-        }
-        let message: Message
-    }
-    let choices: [Choice]
 }
