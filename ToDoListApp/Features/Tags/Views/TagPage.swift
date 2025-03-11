@@ -72,23 +72,6 @@ struct TagPage: View {
     }
 }
 
-func colorFromString(_ colorName: String) -> Color {
-    switch colorName.lowercased() {
-    case "red":
-        return Color.red
-    case "green":
-        return Color.green
-    case "blue":
-        return Color.blue
-    case "yellow":
-        return Color.yellow
-    case "gray":
-        return Color.gray
-    default:
-        return Color.gray
-    }
-}
-
 struct ManageTags: View {
     @ObservedObject var userDataManager: UserDataManager
     @Environment(\.dismiss) var dismiss

@@ -7,14 +7,6 @@
 
 import SwiftUI
 
-enum FilterType: String {
-    case all = "All Tasks"
-    case dueToday = "Due Today"
-    case comingUp = "Coming Up"
-    case completed = "Completed"
-    case expired = "Expired"
-}
-
 func initializeUserData() -> [SingleCardData] {
     let decoder = JSONDecoder()
     
@@ -44,72 +36,63 @@ struct MainContentView: View {
     @State private var multiSelectMode: Bool = false
     
     var body: some View {
-        ZStack {
-            NavigationStack {
-                ZStack {
-                    ScrollView {
-                        LazyVStack {
-                            TaskHighlightsView(highlightsManager: highlightsManager)
-                                .padding(.top, 10)
-                            
+        NavigationStack {
+            ZStack {
+                Color.background.ignoresSafeArea()
+                ScrollView {
+                    LazyVStack {
+//                            TaskHighlightsView(highlightsManager: highlightsManager)
+//                                .padding(.top, 10)
+                        
 //                            if filter != .completed && filter != .expired {
 //                                CircularProgressView(filter: $filter,
 //                                                     percent: calculateProgress())
 //                                .padding()
 //                            }
-                            
-                            TaskListView(
-                                //userData: userData,
-                                multiSelectMode: $multiSelectMode,
-                                selection: $selection,
-                                filter: filter
-                            )
-//                            .padding(.bottom)
-//                            HStack {
-//                                Text("Coming Up").font(.title).fontWeight(.semibold)
-//                                    .padding()
-//                                Spacer()
-//
-                            .padding(.bottom, 60)
-                        }
-                    }
-                    .refreshable {
-                        await refreshHighlights()
-                    }
-                    ActionButtonsView(showAddToDoPage: $showAddToDoPage,
-                                      showGPTSheet: $showGPTSheet,
-                                      multiSelectMode: $multiSelectMode,
-                                      selection: $selection
-                    )
-                }
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        MenuButton(filter: $filter,
-                                   showMenu: $showMenu)
-                    }
-                    ToolbarItemGroup(placement: .navigationBarTrailing) {
-                        HStack {
-                            DeleteButton(selection: $selection)
-                            .opacity(multiSelectMode ? 1 : 0)
-                            
-                            SelectAllButton(selection: $selection)
-                            .opacity(multiSelectMode ? 1 : 0)
-                            
-                            MultiSelectButton(multiSelectMode: $multiSelectMode,
-                                              selection: $selection)
-                        }
+                        
+                        TaskListView(
+                            multiSelectMode: $multiSelectMode,
+                            selection: $selection,
+                            filter: filter
+                        )
                     }
                 }
-                
-                .navigationTitle(filter.rawValue)
+                .refreshable {
+                    await refreshHighlights()
+                }
+                ActionButtonsView(showAddToDoPage: $showAddToDoPage,
+                                  showGPTSheet: $showGPTSheet,
+                                  multiSelectMode: $multiSelectMode,
+                                  selection: $selection
+                )
             }
-            
-            if showMenu {
-                MenuPage(selectedFilter: $filter,
-                         showMenu: $showMenu)
-                .transition(.move(edge: .leading))
-                .zIndex(2.0)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    MenuButton(filter: $filter,
+                               showMenu: $showMenu)
+                }
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    HStack {
+                        DeleteButton(selection: $selection)
+                        .opacity(multiSelectMode ? 1 : 0)
+                        
+                        SelectAllButton(selection: $selection)
+                        .opacity(multiSelectMode ? 1 : 0)
+                        
+                        MultiSelectButton(multiSelectMode: $multiSelectMode,
+                                          selection: $selection)
+                    }
+                }
             }
+            .toolbarBackgroundVisibility(.visible)
+            .navigationTitle(filter.rawValue)
+        }
+        
+        if showMenu {
+            MenuPage(selectedFilter: $filter,
+                     showMenu: $showMenu)
+            .transition(.move(edge: .leading))
+            .zIndex(2.0)
         }
     }
     

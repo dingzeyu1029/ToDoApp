@@ -57,7 +57,7 @@ struct ActionButtonsView: View {
                 .padding(.bottom, 40)
                 .sheet(isPresented: $showAddToDoPage) {
                     NavigationStack {
-                        AddTaskView()
+                        TaskDetailView()
                     }
                 }
             }
@@ -68,7 +68,7 @@ struct ActionButtonsView: View {
                 Spacer()
                 if !multiSelectMode {
                     Rectangle()
-                        .fill(.background)
+                        .fill(Color.secondaryBackground)
                         .frame(height: 80)
                         .edgesIgnoringSafeArea(.bottom)
                         .transition(.opacity)

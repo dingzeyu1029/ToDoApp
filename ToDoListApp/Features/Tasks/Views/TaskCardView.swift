@@ -1,35 +1,33 @@
 //
-//  SingleCardView_Test.swift
+//  TaskCardView.swift
 //  ToDoListApp
 //
-//  Created by Dingze on 1/27/25.
+//  Created by Dingze Yu on 3/8/25.
 //
 
 import SwiftUI
 
-struct SingleCardView_Test: View {
+struct TaskCardView: View {
     @EnvironmentObject var userDataManager: UserDataManager
-    var itemID: UUID
-
-    @Binding var multiSelectMode: Bool
-    @Binding var selection: [UUID]
-
-    @Environment(\.colorScheme) var colorScheme
-
+    @State private var isExpanded: Bool = false
     @State private var dragInProgress = false
-    @State private var isExpanded = false
     @State private var offset: CGFloat = 0
     @State private var showDeleteButton = false
-    @State private var navigateToEdit = false
-
+    
+    var itemID: UUID
+    @Binding var multiSelectMode: Bool
+    @Binding var selection: [UUID]
+    
     private let deleteButtonWidth: CGFloat = 80
     private let swipeThreshold: CGFloat = -60
+    
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         if let index = userDataManager.ToDoList.firstIndex(where: { $0.id == itemID }) {
             let item = userDataManager.ToDoList[index]
             let isSelected = selection.contains(itemID)
-
+            
             ZStack {
                 // Delete button (only slides in on left swipe)
                 if showDeleteButton || offset < 0 {
@@ -49,27 +47,28 @@ struct SingleCardView_Test: View {
                 }
 
                 // Main card content
-                VStack() {
+                VStack {
+                    // Header row with checkbox and title
                     HStack {
                         // Tag color bar
-                        colorBar(for: item.tag.color)
-
+                        tagColorBar(for: item.tag.color)
+                        
                         // Checkbox
                         Image(systemName: item.isChecked ? "checkmark.circle" : "circle")
                             .resizable()
+                            .scaledToFit()
                             .frame(width: 20, height: 20)
                             .foregroundStyle(.accent)
+                            .contentTransition(.symbolEffect(.replace))
                             .onTapGesture {
                                 userDataManager.check(id: itemID)
                                 userDataManager.sort()
                             }
                             .padding(.leading, 5)
-
-                        // Title and Date
-                        Button {
-                            if !dragInProgress && !multiSelectMode {
-                                navigateToEdit = true
-                            }
+                        
+                        // Task info (title and date)
+                        NavigationLink {
+                            TaskDetailView(editingData: item)
                         } label: {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(item.title)
@@ -81,31 +80,42 @@ struct SingleCardView_Test: View {
                                     .foregroundColor(.secondary)
                             }
                             .padding(.leading, 10)
+                            
                             Spacer()
                         }
-                        .buttonStyle(.plain)
-
-                        // Expand subtasks icon
+                        .foregroundColor(.primary)
+                        .disabled(multiSelectMode || dragInProgress)
+                        
+                        // Expand button (if has subtasks)
                         if !item.subtasks.isEmpty {
-                            Button {
-                                withAnimation(.easeInOut) {
+                            Button(action: {
+                                withAnimation(.appDefault) {
                                     isExpanded.toggle()
                                 }
-                            } label: {
+                            }) {
                                 Image(systemName: "chevron.left")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 15, height: 15)
+                                    .foregroundStyle(.accent)
                                     .rotationEffect(.degrees(isExpanded ? -90 : 0))
-                                    .foregroundColor(.accent)
                                     .padding(.trailing, 15)
                             }
                         }
                     }
                     .frame(height: 70)
+                    .background(
+                        Color(uiColor: colorScheme == .light ? .systemBackground : .secondarySystemBackground)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(isSelected ? .accent : Color.clear, lineWidth: 3)
+                    )
+                    .animation(.appDefault, value: isSelected)
+                    .cornerRadius(10)
+                    //.shadow(radius: 10, x: 0, y: 8)
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        // Handle multi-select
                         if multiSelectMode {
                             if isSelected {
                                 selection.removeAll { $0 == itemID }
@@ -114,52 +124,40 @@ struct SingleCardView_Test: View {
                             }
                         }
                     }
-                    .background(
-                        Color(uiColor: colorScheme == .light
-                              ? .systemBackground
-                              : .secondarySystemBackground)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(isSelected ? .accent : .clear, lineWidth: 3)
-                    )
-                    .cornerRadius(10)
-                    .shadow(radius: 10, x: 0, y: 8)
-
-                    // Show subtasks if expanded
+                    
+                    // Subtasks list (shown when expanded)
                     if isExpanded {
                         VStack(alignment: .leading, spacing: 5) {
                             ForEach(item.subtasks) { subtask in
                                 HStack {
-                                    // Subtask checkbox
+                                    // Checkbox for Subtask
                                     Image(systemName: subtask.isChecked ? "checkmark.circle" : "circle")
                                         .foregroundStyle(.accent)
+                                        .imageScale(.medium)
                                         .onTapGesture {
                                             toggleSubtask(subtask, atIndex: index)
                                         }
+                                    
+                                    // Subtask Title
                                     Text(subtask.title)
-                                        .strikethrough(subtask.isChecked)
+                                        .font(.body)
                                         .foregroundStyle(subtask.isChecked ? .secondary : .primary)
+                                        .strikethrough(subtask.isChecked)
                                     Spacer()
                                 }
+                                .padding(.leading, 20)
                             }
                         }
-                        .padding(.leading, 25)
-                        .padding(.top, 5)
                         .padding(.vertical, 10)
                     }
                 }
                 .offset(x: offset)
                 .simultaneousGesture(swipeGesture)
             }
-            .navigationDestination(isPresented: $navigateToEdit) {
-                AddTaskView(editingData: item)
-            }
         }
     }
-
-    // MARK: - Drag Gesture
-
+    
+    // MARK: - Swipe Gesture
     private var swipeGesture: some Gesture {
         DragGesture(minimumDistance: 10, coordinateSpace: .local)
             .onChanged { gesture in
@@ -202,16 +200,15 @@ struct SingleCardView_Test: View {
                 dragInProgress = false
             }
     }
-
-    // MARK: - Actions
-
+    
+    // MARK: - Helper Methods
     private func resetPosition() {
         withAnimation(.appDefault) {
             offset = 0
             showDeleteButton = false
         }
     }
-
+    
     private func deleteItem() {
         withAnimation(.appDefault) {
             resetPosition()
@@ -219,18 +216,17 @@ struct SingleCardView_Test: View {
             selection.removeAll { $0 == itemID }
         }
     }
-
+    
     private func toggleSubtask(_ subtask: Subtask, atIndex index: Int) {
         if let subIndex = userDataManager.ToDoList[index].subtasks.firstIndex(of: subtask) {
             userDataManager.ToDoList[index].subtasks[subIndex].isChecked.toggle()
             userDataManager.storeData()
         }
     }
-
-    // MARK: - Color Bar
-
+    
+    // MARK: - Tag Color Bar
     @ViewBuilder
-    private func colorBar(for color: String) -> some View {
+    private func tagColorBar(for color: String) -> some View {
         let bar = Rectangle().frame(width: 8)
         switch color.lowercased() {
         case "blue": bar.foregroundColor(.blue)
